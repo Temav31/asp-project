@@ -1,0 +1,506 @@
+@* Представление результатов расчета поковки *@
+@model asp_project.Models.ViewModels.ResultViewModel
+@{
+    ViewData["Title"] = "Результаты расчета";
+}
+
+<div style="margin: 40px;">
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">Результаты расчета поковки</h2>
+        <div class="mb-4">
+            <a href="/calculation" class="btn btn-primary btn-lg">
+                <i class="bi bi-arrow-left"></i> Новый расчет
+            </a>
+        </div>
+    </div>
+</div>
+
+@if (Model?.Result == null)
+{
+    <div class="alert alert-danger">
+        <h4>Ошибка: Результаты не найдены</h4>
+        <p>Пожалуйста, вернитесь на главную страницу и выполните расчет заново.</p>
+        <a href="/calculation" class="btn btn-primary">Вернуться к расчету</a>
+    </div>
+}
+else
+{
+
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Входные параметры</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>D (наружный диаметр):</strong> @Model.Result.Input.D.ToString("F2") мм
+                    </div>
+                    <div class="col-md-3">
+                        <strong>d (внутренний диаметр):</strong> @Model.Result.Input.InnerDiameter.ToString("F2") мм
+                    </div>
+                    <div class="col-md-3">
+                        <strong>H (высота):</strong> @Model.Result.Input.H.ToString("F2") мм
+                    </div>
+                    <div class="col-md-3">
+                        <strong>X (количество деталей):</strong> @Model.Result.Input.X
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-3">
+                        <strong>Y (длина реза):</strong> @Model.Result.Input.Y.ToString("F2") мм
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Z (количество резов):</strong> @Model.Result.Input.Z
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Q (напуск на пробу):</strong> @Model.Result.Input.Q.ToString("F2") мм
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Напуск на ТО:</strong> @Model.Result.Input.ThermalTreatmentAllowance.ToString("F2") мм
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Промежуточные расчеты</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Параметр</th>
+                            <th>Формула</th>
+                            <th>Расчет</th>
+                            <th>Результат, мм</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>H1 (без пробы)</strong></td>
+                            <td>H × X + (Y × Z) + напуск на ТО</td>
+                            <td>@Model.Result.Input.H × @Model.Result.Input.X + (@Model.Result.Input.Y × @Model.Result.Input.Z) + @Model.Result.Input.ThermalTreatmentAllowance</td>
+                            <td><strong>@Model.Result.H1.ToString("F2")</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>H2 (с пробой)</strong></td>
+                            <td>H × X + (Y × Z) + Q + напуск на ТО</td>
+                            <td>@Model.Result.Input.H × @Model.Result.Input.X + (@Model.Result.Input.Y × @Model.Result.Input.Z) + @Model.Result.Input.Q + @Model.Result.Input.ThermalTreatmentAllowance</td>
+                            <td><strong>@Model.Result.H2.ToString("F2")</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">Расчет размеров поковки (б ± ∆/2 - см. лист 2)</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Параметр</th>
+                            <th>Формула</th>
+                            <th>Размер, мм</th>
+                            <th>Допуск ±, мм</th>
+                            <th>б</th>
+                            <th>±∆/2</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>H заготовки</strong></td>
+                            <td>(H1 + б) ± ∆/2</td>
+                            <td><strong>@Model.Result.HBlank.ToString("F2")</strong></td>
+                            <td>@Model.Result.HBlankTolerance.ToString("F2")</td>
+                            <td>@Model.Result.Beta1.ToString("F2")</td>
+                            <td>@Model.Result.Delta1.ToString("F2")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>H заготовки с пробой</strong></td>
+                            <td>(H2 + б) ± ∆/2</td>
+                            <td><strong>@Model.Result.HBlankWithSample.ToString("F2")</strong></td>
+                            <td>@Model.Result.HBlankWithSampleTolerance.ToString("F2")</td>
+                            <td>@Model.Result.Beta2.ToString("F2")</td>
+                            <td>@Model.Result.Delta2.ToString("F2")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>D дет</strong></td>
+                            <td>D + напуск на ТО</td>
+                            <td><strong>@Model.Result.DDetail.ToString("F2")</strong></td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td><strong>D заг</strong></td>
+                            <td>(D + б) ± ∆/2 + напуск на ТО</td>
+                            <td><strong>@Model.Result.DBlank.ToString("F2")</strong></td>
+                            <td>@Model.Result.DBlankTolerance.ToString("F2")</td>
+                            <td>@Model.Result.Beta1.ToString("F2")</td>
+                            <td>@Model.Result.Delta1.ToString("F2")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>D заг с пробой</strong></td>
+                            <td>(D + б) ± ∆/2 + напуск на ТО</td>
+                            <td><strong>@Model.Result.DBlankWithSample.ToString("F2")</strong></td>
+                            <td>@Model.Result.DBlankWithSampleTolerance.ToString("F2")</td>
+                            <td>@Model.Result.Beta2.ToString("F2")</td>
+                            <td>@Model.Result.Delta2.ToString("F2")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>d дет</strong></td>
+                            <td>d - напуск на ТО</td>
+                            <td><strong>@Model.Result.dDetail.ToString("F2")</strong></td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td><strong>d заг</strong></td>
+                            <td>(d дет - б) ± 3б</td>
+                            <td><strong>@Model.Result.dBlank.ToString("F2")</strong></td>
+                            <td>@Model.Result.dBlankTolerance.ToString("F2")</td>
+                            <td>@Model.Result.Beta1.ToString("F2")</td>
+                            <td>@((3 * Model.Result.Delta1).ToString("F2"))</td>
+                        </tr>
+                        <tr>
+                            <td><strong>d заг с пробой</strong></td>
+                            <td>(d дет - б) ± 3б</td>
+                            <td><strong>@Model.Result.dBlankWithSample.ToString("F2")</strong></td>
+                            <td>@Model.Result.dBlankWithSampleTolerance.ToString("F2")</td>
+                            <td>@Model.Result.Beta2.ToString("F2")</td>
+                            <td>@((3 * Model.Result.Delta2).ToString("F2"))</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">Размеры заготовки БЕЗ ПРОБЫ</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Параметр</th>
+                            <th>Значение</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Высота H</td>
+                            <td>@Model.Result.HBlank.ToString("F2") ± @Model.Result.HBlankTolerance.ToString("F2") мм</td>
+                        </tr>
+                        <tr>
+                            <td>Наружный диаметр D</td>
+                            <td>@Model.Result.DBlank.ToString("F2") ± @Model.Result.DBlankTolerance.ToString("F2") мм</td>
+                        </tr>
+                        <tr>
+                            <td>Внутренний диаметр d</td>
+                            <td>@Model.Result.dBlank.ToString("F2") ± @Model.Result.dBlankTolerance.ToString("F2") мм</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">Размеры заготовки С ПРОБОЙ</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Параметр</th>
+                            <th>Значение</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Высота H</td>
+                            <td>@Model.Result.HBlankWithSample.ToString("F2") ± @Model.Result.HBlankWithSampleTolerance.ToString("F2") мм</td>
+                        </tr>
+                        <tr>
+                            <td>Наружный диаметр D</td>
+                            <td>@Model.Result.DBlankWithSample.ToString("F2") ± @Model.Result.DBlankWithSampleTolerance.ToString("F2") мм</td>
+                        </tr>
+                        <tr>
+                            <td>Внутренний диаметр d</td>
+                            <td>@Model.Result.dBlankWithSample.ToString("F2") ± @Model.Result.dBlankWithSampleTolerance.ToString("F2") мм</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Расчет массы поковки БЕЗ ПРОБЫ</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Масса поковки рассчитывается по формуле: V = πr²L, где r – радиус поковки (половина диаметра), а L – ее длина. Затем рассчитывается вес поковки: m = ρV, где ρ – это удельный вес стали.</p>
+                
+                <h5 class="mt-4 mb-3">Диск</h5>
+                <table class="table table-bordered table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Тип</th>
+                            <th>D, мм</th>
+                            <th>r, мм</th>
+                            <th>Н, мм</th>
+                            <th>V, мм³</th>
+                            <th>m диск, т</th>
+                            <th>m диск с отв, т</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Диск номинал</strong></td>
+                            <td>@Model.Result.DiskNominalD.ToString("F2")</td>
+                            <td>@Model.Result.DiskNominalR.ToString("F2")</td>
+                            <td>@Model.Result.DiskNominalH.ToString("F2")</td>
+                            <td>@Model.Result.DiskNominalV.ToString("F0")</td>
+                            <td>@Model.Result.DiskNominalMass.ToString("F3")</td>
+                            <td><strong>@Model.Result.DiskNominalMassWithHole.ToString("F3")</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Диск максимал</strong></td>
+                            <td>@Model.Result.DiskMaxD.ToString("F2")</td>
+                            <td>@Model.Result.DiskMaxR.ToString("F2")</td>
+                            <td>@Model.Result.DiskMaxH.ToString("F2")</td>
+                            <td>@Model.Result.DiskMaxV.ToString("F0")</td>
+                            <td>@Model.Result.DiskMaxMass.ToString("F3")</td>
+                            <td><strong>@Model.Result.DiskMaxMassWithHole.ToString("F3")</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h5 class="mt-4 mb-3">Отверстие</h5>
+                <table class="table table-bordered table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Тип</th>
+                            <th>D, мм</th>
+                            <th>r, мм</th>
+                            <th>Н, мм</th>
+                            <th>V, мм³</th>
+                            <th>m, т</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Отверстие номинал</strong></td>
+                            <td>@Model.Result.HoleNominalD.ToString("F2")</td>
+                            <td>@Model.Result.HoleNominalR.ToString("F2")</td>
+                            <td>@Model.Result.HoleNominalH.ToString("F2")</td>
+                            <td>@Model.Result.HoleNominalV.ToString("F0")</td>
+                            <td>@Model.Result.HoleNominalMass.ToString("F3")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Отверстие максимал</strong></td>
+                            <td>@Model.Result.HoleMaxD.ToString("F2")</td>
+                            <td>@Model.Result.HoleMaxR.ToString("F2")</td>
+                            <td>@Model.Result.HoleMaxH.ToString("F2")</td>
+                            <td>@Model.Result.HoleMaxV.ToString("F0")</td>
+                            <td>@Model.Result.HoleMaxMass.ToString("F3")</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Расчет массы поковки С ПРОБОЙ</h5>
+            </div>
+            <div class="card-body">
+                <h5 class="mt-2 mb-3">Диск</h5>
+                <table class="table table-bordered table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Тип</th>
+                            <th>D, мм</th>
+                            <th>r, мм</th>
+                            <th>Н, мм</th>
+                            <th>V, мм³</th>
+                            <th>m диск, т</th>
+                            <th>m диск с отв, т</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Диск номинал</strong></td>
+                            <td>@Model.Result.DiskWithSampleNominalD.ToString("F2")</td>
+                            <td>@Model.Result.DiskWithSampleNominalR.ToString("F2")</td>
+                            <td>@Model.Result.DiskWithSampleNominalH.ToString("F2")</td>
+                            <td>@Model.Result.DiskWithSampleNominalV.ToString("F0")</td>
+                            <td>@Model.Result.DiskWithSampleNominalMass.ToString("F3")</td>
+                            <td><strong>@Model.Result.DiskWithSampleNominalMassWithHole.ToString("F3")</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Диск максимал</strong></td>
+                            <td>@Model.Result.DiskWithSampleMaxD.ToString("F2")</td>
+                            <td>@Model.Result.DiskWithSampleMaxR.ToString("F2")</td>
+                            <td>@Model.Result.DiskWithSampleMaxH.ToString("F2")</td>
+                            <td>@Model.Result.DiskWithSampleMaxV.ToString("F0")</td>
+                            <td>@Model.Result.DiskWithSampleMaxMass.ToString("F3")</td>
+                            <td><strong>@Model.Result.DiskWithSampleMaxMassWithHole.ToString("F3")</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h5 class="mt-4 mb-3">Отверстие</h5>
+                <table class="table table-bordered table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Тип</th>
+                            <th>D, мм</th>
+                            <th>r, мм</th>
+                            <th>Н, мм</th>
+                            <th>V, мм³</th>
+                            <th>m, т</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Отверстие номинал</strong></td>
+                            <td>@Model.Result.HoleWithSampleNominalD.ToString("F2")</td>
+                            <td>@Model.Result.HoleWithSampleNominalR.ToString("F2")</td>
+                            <td>@Model.Result.HoleWithSampleNominalH.ToString("F2")</td>
+                            <td>@Model.Result.HoleWithSampleNominalV.ToString("F0")</td>
+                            <td>@Model.Result.HoleWithSampleNominalMass.ToString("F3")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Отверстие максимал</strong></td>
+                            <td>@Model.Result.HoleWithSampleMaxD.ToString("F2")</td>
+                            <td>@Model.Result.HoleWithSampleMaxR.ToString("F2")</td>
+                            <td>@Model.Result.HoleWithSampleMaxH.ToString("F2")</td>
+                            <td>@Model.Result.HoleWithSampleMaxV.ToString("F0")</td>
+                            <td>@Model.Result.HoleWithSampleMaxMass.ToString("F3")</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Чертеж поковки БЕЗ ПРОБЫ</h5>
+            </div>
+            <div class="card-body">
+                @if (string.IsNullOrEmpty(Model.DrawingWithoutSample))
+                {
+                    <p class="text-danger text-center">Чертеж не сгенерирован</p>
+                }
+                else
+                {
+                    <div class="drawing-container">
+                        @Html.Raw(Model.DrawingWithoutSample)
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">Чертеж поковки С ПРОБОЙ</h5>
+            </div>
+            <div class="card-body">
+                @if (string.IsNullOrEmpty(Model.DrawingWithSample))
+                {
+                    <p class="text-danger text-center">Чертеж не сгенерирован</p>
+                }
+                else
+                {
+                    <div class="drawing-container">
+                        @Html.Raw(Model.DrawingWithSample)
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+}
+</div>
+
+<style>
+    .table {
+        border: 2px solid #dee2e6 !important;
+    }
+    
+    .table th,
+    .table td {
+        border: 1px solid #dee2e6 !important;
+        margin: 5px !important;
+        padding: 8px 13px !important;
+    }
+    
+    .table thead th {
+        border-bottom: 2px solid #dee2e6 !important;
+        background-color: #f8f9fa !important;
+    }
+    
+    .table-bordered {
+        border: 2px solid #dee2e6 !important;
+    }
+    
+    .table-bordered th,
+    .table-bordered td {
+        border: 1px solid #dee2e6 !important;
+    }
+    
+    .card-body svg {
+        max-width: 100%;
+        height: auto;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #fff;
+    }
+    
+    .drawing-container {
+        overflow-x: auto;
+        padding: 10px;
+        /* background-color: #f8f9fa; */
+        border-radius: 8px;
+    }
+</style>
+
