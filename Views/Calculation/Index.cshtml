@@ -1,0 +1,164 @@
+@* Представление формы ввода данных для расчета поковки *@
+@model asp_project.Models.CalculationInputModel
+@{
+    ViewData["Title"] = "Форма для расчета поковки";
+}
+
+
+<div class="row" style="margin: 40px">
+    <div class="col-md-8 offset-md-2">
+        <h2 class="mb-4">Расчет поковок кольцо раскатное</h2>
+        <p class="text-muted">Заполните все поля для выполнения расчета</p>
+
+        <form action="/calculate" method="post" id="calculationForm">
+            @Html.AntiForgeryToken()
+            
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <h5 class="alert-heading">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Ошибки ввода данных
+                    </h5>
+                    <hr>
+                    <ul class="mb-0">
+                        @foreach (var state in ViewData.ModelState)
+                        {
+                            @foreach (var error in state.Value.Errors)
+                            {
+                                <li><strong>@state.Key:</strong> @error.ErrorMessage</li>
+                            }
+                        }
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Деталь - чистовые размеры</h5>
+                </div>
+                <div class="card-body" style="display: flex; flex-direction: column; gap: 10px;">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="D" class="form-label"></label>
+                            <input asp-for="D" class="form-control" type="number" step="0.01" required />
+                            <span asp-validation-for="D" class="text-danger"></span>
+                            <small class="form-text text-muted">Наружный диаметр детали в мм (например: 1360)</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="InnerDiameter" class="form-label"></label>
+                            <input asp-for="InnerDiameter" class="form-control" type="number" step="0.01" required />
+                            <span asp-validation-for="InnerDiameter" class="text-danger"></span>
+                            <small class="form-text text-muted">Внутренний диаметр детали в мм (например: 540)</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="H" class="form-label"></label>
+                            <input asp-for="H" class="form-control" type="number" step="0.01" required />
+                            <span asp-validation-for="H" class="text-danger"></span>
+                            <small class="form-text text-muted">Высота детали в мм (например: 215)</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ThermalTreatmentAllowance" class="form-label"></label>
+                            <input asp-for="ThermalTreatmentAllowance" class="form-control" type="number" step="0.01" />
+                            <span asp-validation-for="ThermalTreatmentAllowance" class="text-danger"></span>
+                            <small class="form-text text-muted">Напуск на термообработку в мм (например: 0)</small>
+                        </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Технологические параметры</h5>
+                </div>
+                <div class="card-body" style="display: flex; flex-direction: column; gap: 10px;">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="X" class="form-label"></label>
+                            <input asp-for="X" class="form-control" type="number" required />
+                            <span asp-validation-for="X" class="text-danger"></span>
+                            <small class="form-text text-muted">Количество деталей в поковке (например: 2)</small>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Y" class="form-label"></label>
+                            <input asp-for="Y" class="form-control" type="number" step="0.01" required />
+                            <span asp-validation-for="Y" class="text-danger"></span>
+                            <small class="form-text text-muted">Длина реза в мм (например: 20)</small>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Z" class="form-label"></label>
+                            <input asp-for="Z" class="form-control" type="number" required />
+                            <span asp-validation-for="Z" class="text-danger"></span>
+                            <small class="form-text text-muted">Количество резов = X-1 (например: 1)</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Q" class="form-label"></label>
+                            <input asp-for="Q" class="form-control" type="number" step="0.01" required />
+                            <span asp-validation-for="Q" class="text-danger"></span>
+                            <small class="form-text text-muted">Напуск на пробу в мм (например: 60)</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="SteelDensity" class="form-label"></label>
+                            <input asp-for="SteelDensity" class="form-control" type="number" step="0.01" />
+                            <span asp-validation-for="SteelDensity" class="text-danger"></span>
+                            <small class="form-text text-muted">Удельный вес стали в г/см³ (например: 7.85)</small>
+                        </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 10px;">
+                <button type="submit" id="calculateBtn" class="btn btn-primary btn-lg w-100">
+                    <i class="bi bi-calculator"></i> Выполнить расчет
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <style>
+        .input-validation-error {
+            border-color: #dc3545 !important;
+            border-width: 2px !important;
+            background-color: #fff5f5 !important;
+        }
+        
+        .input-validation-error:focus {
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+        }
+        
+        .field-validation-error {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+        
+        .validation-summary-errors ul {
+            margin-bottom: 0;
+            padding-left: 1.5rem;
+        }
+    </style>
+    
+    <script>
+        document.getElementById('calculationForm').addEventListener('submit', function(e) {
+            var numberInputs = this.querySelectorAll('input[type="number"]');
+            
+            numberInputs.forEach(function(input) {
+                var originalValue = input.value;
+                if (originalValue) {
+                    var normalizedValue = originalValue.replace(',', '.');
+                    input.value = normalizedValue;
+                }
+            });
+        });
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            var firstError = document.querySelector('.input-validation-error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+        });
+    </script>
+}
+
